@@ -1,0 +1,162 @@
+
+k<-300
+m<-8
+g<-2
+
+x<-rnorm(k, m, g)
+
+
+
+#/////////////////стандартная нормальная ошибка
+
+error <- qnorm(0.975)*g/sqrt(k)
+left <- mean(x)-error
+left
+right <- mean(x)+error
+left
+
+
+#//////////////ошибка по распределению стьюдента
+
+error <- qt(0.975,df=n-1)*sd(x)/sqrt(n)
+
+left <- mean(x)-error
+left
+right <- mean(x)+error
+left
+
+
+#//////////////////гистограмма
+
+nint<-50
+
+xmax<-max(x)
+xmin<-min(x)
+
+int<-(xmax-xmin)/nint
+vint<-rep(0, (nint+1))
+vint[1]<-xmin
+vint[nint+1]<-xmax
+for(i in 2:(nint)) vint[i]<-vint[i-1]+int
+
+hist(x, breaks=vint, prob=TRUE, col="peachpuff", border="black", xaxt="n", ylim=c(0, 1), xlim=c(0, max(x)))
+axis(1, at = seq(0, max(x), by = 0.5), las=2)
+lines(density(x))
+
+#//////////////////критерий стьюдента (1)
+
+nrep<-100000
+k<-3
+
+m<-8
+g<-2
+
+X<-rep(0.0, nrep)
+
+for(i in 1:nrep)
+ {
+  x<-rnorm(k,m,g)
+  X[i]<-mean(x)
+ }
+
+mean(X)
+sd(X)
+ 
+g/sqrt(k)
+
+VX<-seq(m-3*g/sqrt(k), m+3*g/sqrt(k),length=1000)
+Px<-dnorm(VX, mean=m, sd=g/sqrt(k))
+
+plot(VX, Px, type="l", lwd=1, col="red")
+
+lines(density(X))
+
+#//////////////////критерий стьюдента (2)
+
+nrep<-10000
+k<-10
+
+m<-8
+g<-2
+
+XT<-rep(0.0, nrep)
+XR<-rep(0.0, nrep)
+
+for(i in 1:nrep)
+ {
+  x<-rnorm(k,m,g)
+  XT[i]<-(mean(x)-m)/(g/sqrt(k))
+  XR[i]<-(mean(x)-m)/(sd(x)/sqrt(k))
+ }
+
+plot(density(XT), col="red")
+
+lines(density(XR))
+
+#//////////////////равномерное распределение
+
+
+nrep<-10000
+k<-30
+
+a<-2
+b<-8
+
+XT<-rep(0.0, nrep)
+XR<-rep(0.0, nrep)
+
+for(i in 1:nrep)
+ {
+  x<-runif(k,a,b)
+  XT[i]<-(mean(x)-(a+b)/2)/((sqrt(3)*(b-a)/6)/sqrt(k))
+  XR[i]<-(mean(x)-(a+b)/2)/(sd(x)/sqrt(k))
+ }
+
+plot(density(XT), col="red")
+
+lines(density(XR))
+
+#//////////////////экспоненцыальное распределение
+
+
+nrep<-20000
+k<-200
+
+a<-1/5
+
+XT<-rep(0.0, nrep)
+XR<-rep(0.0, nrep)
+
+for(i in 1:nrep)
+ {
+  x<-rexp(k,a)
+  XT[i]<-(mean(x)-1/a)/((1/a)/sqrt(k))
+  XR[i]<-(mean(x)-1/a)/(sd(x)/sqrt(k))
+ }
+
+plot(density(XT), col="red")
+
+lines(density(XR))
+
+#//////////////////экспоненциальной распределение
+
+nrep<-10000
+k<-3
+
+a<-2
+b<-8
+
+XT<-rep(0.0, nrep)
+XR<-rep(0.0, nrep)
+
+for(i in 1:nrep)
+ {
+  x<-runif(k,a,b)
+  XT[i]<-(mean(x)-(a+b)/2)/((sqrt(3)*(b-a)/6)/sqrt(k))
+  XR[i]<-(mean(x)-(a+b)/2)/(sd(x)/sqrt(k))
+ }
+
+plot(density(XT), col="red")
+
+lines(density(XR))
+
