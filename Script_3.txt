@@ -1,0 +1,61 @@
+setwd("")
+
+data<-read.table("data.txt",header=TRUE,sep="\t")
+
+#тест Шапиро Вилка
+
+shapiro.test(data$Длина.первого.листа)
+
+shapiro.test(data$Длина.второго.листа)
+
+#тест колмогорова смирнова
+
+ks.test(data$Длина.первого.листа, "pnorm", mean=mean(data$Длина.первого.листа),  sd=sd(data$Длина.первого.листа))
+
+ks.test(data$Длина.второго.листа, "pnorm", mean=mean(data$Длина.второго.листа),  sd=sd(data$Длина.второго.листаа))
+
+#визуализация в виде гистограмм
+
+nint<-10
+
+xmax<-20
+xmin<-0
+
+int<-(xmax-xmin)/nint
+vint<-rep(0, (nint+1))
+vint[1]<-xmin
+vint[nint+1]<-xmax
+for(i in 2:(nint)) vint[i]<-vint[i-1]+int
+
+hist(data$Длина.первого.листа, breaks=vint, prob=TRUE, col="peachpuff", border="black", xaxt="n", ylim=c(0, 0.4), xlim=c(0, 24))
+
+axis(1, at = seq(0, 20, by = 2), las=2)
+
+
+hist(data$Длина.второго.листа, breaks=vint, prob=TRUE, col="peachpuff", border="black", xaxt="n", ylim=c(0, 0.4), xlim=c(0, 24))
+
+axis(1, at = seq(0, 20, by = 2), las=2)
+
+#две гистограммы на одном листе
+
+par(mfrow=c(2,1))
+
+
+hist(data$Длина.первого.листа, breaks=vint, prob=TRUE, col="peachpuff", border="black", xaxt="n", ylim=c(0, 0.4), xlim=c(0, 24))
+axis(1, at = seq(0, 20, by = 2), las=2)
+
+
+hist(data$Длина.второго.листа, breaks=vint, prob=TRUE, col="peachpuff", border="black", xaxt="n", ylim=c(0, 0.4), xlim=c(0, 24))
+axis(1, at = seq(0, 20, by = 2), las=2)
+
+#визуализация в вивде боксплотов
+
+boxplot(data[, c("Длина.первого.листа", "Длина.второго.листа")], range=0)
+
+#тестирование достоверности различий между средними
+
+t.test(data$Длина.первого.листа, data$Длина.второго.листа)
+
+wilcox.test(data$Длина.первого.листа, data$Длина.второго.листа)
+
+
