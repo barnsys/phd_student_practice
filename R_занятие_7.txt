@@ -1,3 +1,5 @@
+Mikhailov I.S., Zakharova Y.R., Bukin Y.S., Galachyants Y.P., Petrova D.P., Sakirko M.V., Likhoshway Y.V. Co-occurrence Networks Among Bacteria and Microbial Eukaryotes of Lake Baikal During a Spring Phytoplankton Bloom // Microbial Ecology. – 2019. – № 77. – P. 96-109.
+
 library(vegan)
 
 setwd("H:\\Занияти для аспирантов ЛИН\\Занятие 7\\")
