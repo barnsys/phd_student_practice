@@ -1,0 +1,144 @@
+library(vegan)
+
+setwd("H:\\Занияти для аспирантов ЛИН\\Занятие 7\\")
+
+my_data<-read.table("data_main.txt",header=TRUE,sep="\t")
+
+rownames(my_data)<-my_data[,1]
+
+my_data<-my_data[,-1]
+
+#вычисление средних значений по котловинам
+
+my_data_mean<-aggregate(.~bassein, data=my_data,  FUN=mean)
+
+
+#вычисление доверительных интервалов для средних значений по котловинам
+
+error<-function(x)
+ {
+  dx<-qt(0.975,df=length(x)-1)*sd(x)/sqrt(length(x))
+  return(dx)
+ }
+
+
+ci_max<-function(x)
+ {
+  return(mean(x)+error(x))
+ }
+
+
+ci_min<-function(x)
+ {
+  return(mean(x)-error(x))
+ }
+
+mean(my_data[,1])
+ci_max(my_data[,1])
+ci_min(my_data[,1])
+
+
+my_data_ci_max<-aggregate(.~bassein, data=my_data,  FUN=ci_max)
+
+my_data_ci_min<-aggregate(.~bassein, data=my_data,  FUN=ci_min)
+
+
+
+#вычисление доверительных итервалов с помощью бутсреп метода
+
+mean_value<-function(x, i)
+ {
+  return(mean(x[i]))
+ }
+
+
+results<-boot(my_data[,1], statistic=mean_value, R=1000)
+
+s<-boot.ci(results, type="bca", conf=0.95)
+s
+
+ci_max_boot<-function(x)
+ {
+  results<-boot(x, statistic=mean_value, R=1000)
+  s<-boot.ci(results, type="bca", conf=0.95)
+  return(s$bca[5])
+ }
+
+
+ci_min_boot<-function(x)
+ {
+  results<-boot(x, statistic=mean_value, R=1000)
+  s<-boot.ci(results, type="bca", conf=0.95)
+  return(s$bca[4])
+ }
+
+my_data_ci_max<-aggregate(.~bassein, data=my_data,  FUN=ci_max_boot)
+
+my_data_ci_min<-aggregate(.~bassein, data=my_data,  FUN=ci_min_boot)
+
+
+#визуализация в виде барплота
+
+rownames(my_data_mean)<-my_data_mean[,1]
+my_data_mean <- as.matrix(my_data_mean[,-1])
+
+rownames(my_data_ci_max) <- my_data_ci_max[,1]
+my_data_ci_max<-as.matrix(my_data_ci_max[,-1])
+
+rownames(my_data_ci_min) <- my_data_ci_min[,1]
+my_data_ci_min<-as.matrix(my_data_ci_min[,-1])
+
+
+my_data_mean<-my_data_mean[,c("NO3_mg.l", "PO4_mg.l", "Si_mg.l")]
+
+my_data_ci_max<-my_data_ci_max[,c("NO3_mg.l", "PO4_mg.l", "Si_mg.l")]
+
+my_data_ci_min<-my_data_ci_min[,c("NO3_mg.l", "PO4_mg.l", "Si_mg.l")]
+
+
+
+lim <- 2.5*max(my_data_mean)
+
+error.bar <- function(x, y, upper, lower, length=0.1)
+ {
+  arrows(x, y+upper, x, y-lower, angle=90, code=3, length=length)
+ }
+
+
+ze_barplot <- barplot(my_data_mean , beside=T , legend.text=T, col=c("dodgerblue4", "blue" , "skyblue") , ylim=c(0,lim) , ylab="height")
+error.bar(ze_barplot, my_data_mean, my_data_ci_max, my_data_ci_min)
+
+
+#оценка взаимосвязи параметров
+
+my_data<-read.table("data_main.txt",header=TRUE,sep="\t")
+
+rownames(my_data)<-my_data[,1]
+
+my_data<-my_data[,-1]
+
+Resp<-my_data[,1:7]
+
+Expl<-my_data[,c(8:14)]
+
+Resp<-decostand(Resp, method="range", MARGIN = 2)
+
+ord<-metaMDS(Resp, distance = "euclidean")
+
+plot(ord, typ="n")
+
+points(ord, display="sites", pch=1, lwd=3.5, cex = 3.2, col="red", select=which(Expl$bassein=="S"))
+points(ord, display="sites", pch=1, lwd=3.5, cex = 3.2, col="blue", select=which(Expl$bassein=="N"))
+points(ord, display="sites", pch=1, lwd=3.5, cex = 3.2, col="green", select=which(Expl$bassein=="M"))
+text(ord, display = "sites", labels=rownames(Resp) , cex=0.4)
+
+st<-paste("ord ~ ", colnames(Expl)[1], sep="")
+for(i in 2:ncol(Expl)) st<-paste(st,colnames(Expl)[i], sep="+")
+
+
+ord.fit<-envfit(as.formula(st), data=Expl, perm=10000)
+ord.fit
+
+plot(ord.fit)
+
+
