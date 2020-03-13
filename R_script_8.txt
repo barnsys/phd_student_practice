@@ -1,0 +1,147 @@
+library(vegan)
+library(gplots)
+library(igraph)
+library(qgraph)
+
+setwd("")
+
+my_data<-read.table("data_2.txt",header=TRUE,sep="\t")
+
+rownames(my_data)<-my_data[,1]
+
+my_data<-my_data[,-1]
+
+my_data<-my_data[,-ncol(my_data)]
+
+my_data
+
+d_h<-t(my_data)
+
+DD=matrix(nrow=nrow(d_h), ncol=nrow(d_h))
+
+rownames(DD)<-rownames(d_h)
+colnames(DD)<-rownames(d_h)
+
+for(i in 1:nrow(d_h))
+ {
+   for(j in 1:nrow(d_h))
+    {
+     R=cor.test(d_h[i,], d_h[j,], method ="spearman")
+     DD[i,j]=R$estimate
+     if(i==j) DD[i,j]=0
+    }
+ }
+
+
+#heat map construction
+
+heatmap.2(DD,trace="none",col=bluered(100), margins = c(14, 14))
+ 
+#building a correlation network
+
+#the allocation of significant correlation coefficients
+
+for(i in 1:nrow(d_h))
+ {
+  for(j in 1:nrow(d_h))
+   {
+    if(sqrt(DD[i,j]^2)<0.25) DD[i,j]=0
+   }
+ }
+
+group<-list(c(1:7), c(8:13))
+col=c("green", "white")
+sh<-c(rep("square",7), rep("circle",6))
+
+net<-qgraph(DD, minimum=0, layout="spring", label.cex=1.0, vsize=8, labels=rownames(DD), groups=group, color=col, shape=sh, border.width=1.5, fade=F, abel.scale=F, legend=F, esize=5)
+
+
+DSIGN<-sign(DD)
+
+DD<-sqrt(DD^2)
+net<-qgraph(DD, minimum=0, layout="spring", label.cex=2.5, vsize=6, labels=rownames(DD), border.width=1.5, fade=F, abel.scale=T, legend=F, esize=4)
+net<-as.igraph(net)
+
+nsv<-rowSums(abs(DSIGN))
+
+DNEG<-DSIGN
+DNEG[which(DNEG==1)]<-0
+n_neg<-rowSums(abs(DNEG))
+
+DPOS<-DSIGN
+DPOS[which(DPOS==-1)]<-0
+n_poz<-rowSums(abs(DPOS))
+
+
+write.table(data.frame(var=colnames(my_data), betweenness=round(betweenness(net, normalized=T), digits=3), nsv=nsv, n_poz=n_poz, n_neg=n_neg), "betweenness.txt", row.names=F, col.names=TRUE, sep = "\t")
+
+
+setwd("")
+
+my_data<-read.table("data_2.txt",header=TRUE,sep="\t")
+
+rownames(my_data)<-my_data[,1]
+
+my_data<-my_data[,-1]
+
+Resp<-my_data[,1:7]
+
+Expl<-my_data[,c(8:14)]
+
+Resp<-decostand(Resp, method="range", MARGIN = 2)
+
+ord<-metaMDS(Resp, distance = "euclidean")
+
+plot(ord, typ="n")
+
+points(ord, display="sites", pch=1, lwd=3.5, cex = 3.2, col="red", select=which(Expl$bassein=="S"))
+points(ord, display="sites", pch=1, lwd=3.5, cex = 3.2, col="blue", select=which(Expl$bassein=="N"))
+points(ord, display="sites", pch=1, lwd=3.5, cex = 3.2, col="green", select=which(Expl$bassein=="M"))
+text(ord, display = "sites", labels=rownames(Resp) , cex=0.4)
+
+st<-paste("ord ~ ", colnames(Expl)[1], sep="")
+for(i in 2:ncol(Expl)) st<-paste(st,colnames(Expl)[i], sep="+")
+
+
+ord.fit<-envfit(as.formula(st), data=Expl, perm=10000)
+ord.fit
+
+plot(ord.fit)
+
+
+
+
+#оценка взаимосвязи параметров
+
+my_data<-read.table("data_main.txt",header=TRUE,sep="\t")
+
+rownames(my_data)<-my_data[,1]
+
+my_data<-my_data[,-1]
+
+Resp<-my_data[,1:7]
+
+Expl<-my_data[,c(8:14)]
+
+Resp<-decostand(Resp, method="range", MARGIN = 2)
+
+ord<-metaMDS(Resp, distance = "euclidean")
+
+plot(ord, typ="n")
+
+points(ord, display="sites", pch=1, lwd=3.5, cex = 3.2, col="red", select=which(Expl$bassein=="S"))
+points(ord, display="sites", pch=1, lwd=3.5, cex = 3.2, col="blue", select=which(Expl$bassein=="N"))
+points(ord, display="sites", pch=1, lwd=3.5, cex = 3.2, col="green", select=which(Expl$bassein=="M"))
+text(ord, display = "sites", labels=rownames(Resp) , cex=0.4)
+
+st<-paste("ord ~ ", colnames(Expl)[1], sep="")
+for(i in 2:ncol(Expl)) st<-paste(st,colnames(Expl)[i], sep="+")
+
+
+ord.fit<-envfit(as.formula(st), data=Expl, perm=10000)
+ord.fit
+
+plot(ord.fit)
+
+
+
